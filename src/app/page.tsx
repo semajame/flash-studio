@@ -59,8 +59,19 @@ export default function PhotoBooth() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
+    // Get the correct video width and height
+    const videoWidth = video.videoWidth
+    const videoHeight = video.videoHeight
+
+    // Maintain aspect ratio
+    const aspectRatio = videoWidth / videoHeight
+
+    // Set canvas width and height to match video dimensions
+    canvas.width = videoWidth
+    canvas.height = videoHeight
+
+    // Clear the previous drawing
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
 
     // Apply mirroring if enabled
     if (isMirrored) {
@@ -70,17 +81,16 @@ export default function PhotoBooth() {
 
     // Apply the selected filter
     const filter = filters[selectedFilter] || ''
-    console.log('Applying filter:', filter) // Debugging
     ctx.filter = filter
 
-    // Draw the video frame onto the canvas
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+    // Adjust `drawImage()` to maintain aspect ratio
+    ctx.drawImage(video, 0, 0, videoWidth, videoHeight)
 
-    // Reset transformation after drawing
+    // Reset transformations and filters
     ctx.setTransform(1, 0, 0, 1, 0, 0)
-    ctx.filter = 'none' // Reset filter after capturing
+    ctx.filter = 'none'
 
-    // Convert canvas to an image and save it
+    // Convert canvas content to image
     const newPhoto = canvas.toDataURL('image/png')
     setPhotos((prevPhotos) =>
       prevPhotos.length < 4 ? [...prevPhotos, newPhoto] : prevPhotos
@@ -103,7 +113,6 @@ export default function PhotoBooth() {
         clearInterval(countdownInterval.current as NodeJS.Timeout)
         photo()
         setCapturing(false)
-        setCountdown(null)
       }
     }, 1000)
   }
@@ -183,7 +192,7 @@ export default function PhotoBooth() {
             <select
               value={selectedTimer}
               onChange={(e) => setSelectedTimer(Number(e.target.value))}
-              className='p-2 border rounded bg-black text-white'
+              className='p-2 border rounded bg-black text-white cursor-pointer'
             >
               <option value={3}>3 Seconds</option>
               <option value={5}>5 Seconds</option>
@@ -197,7 +206,7 @@ export default function PhotoBooth() {
               ref={videoRef}
               autoPlay
               playsInline
-              className={`w-[700px] border border-zinc-800 rounded-lg object-cover h-[500px]`}
+              className={`w-full border border-zinc-800 rounded-lg object-cover h-auto`}
               style={{
                 transform: isMirrored ? 'scaleX(-1)' : 'none',
               }}
@@ -298,7 +307,7 @@ export default function PhotoBooth() {
               <img
                 src={photo}
                 alt={`Captured ${index + 1}`}
-                className='w-full max-w-md border border-zinc-800 rounded h-[200px]'
+                className='w-full max-w-md border border-zinc-800 rounded h-[200px] object-contain'
               />
             </div>
           ))
