@@ -224,7 +224,7 @@ export default function PrintPage() {
               key={index}
               src={photo}
               alt={`Photo ${index + 1}`}
-              className='w-full max-w-md h-[200px] '
+              className='w-full max-w-md h-auto '
             />
           ))}
 

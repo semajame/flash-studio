@@ -188,7 +188,7 @@ export default function PhotoBooth() {
             Start Camera
           </button>
           {/* Timer Selection UI */}
-          <div className=' flex gap-4 items-center '>
+          <div className=' flex gap-4 items-center'>
             <select
               value={selectedTimer}
               onChange={(e) => setSelectedTimer(Number(e.target.value))}
@@ -307,7 +307,7 @@ export default function PhotoBooth() {
               <img
                 src={photo}
                 alt={`Captured ${index + 1}`}
-                className='w-full max-w-md border border-zinc-800 rounded h-[200px] object-contain'
+                className='w-full max-w-md border border-zinc-800 rounded h-auto object-contain'
               />
             </div>
           ))
