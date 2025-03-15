@@ -9,7 +9,7 @@ export default function LandingPage() {
     <div className='px-10'>
       <div className='min-h-screen  text-white flex flex-col items-center justify-center relative '>
         {/* Header with buttons */}
-        <div className='absolute top-10 right-15 flex gap-4'>
+        <div className='absolute top-10 sm:right-15 right-0 flex gap-4'>
           <Link href='https://github.com/semajame' passHref>
             <Button
               variant='ghost'

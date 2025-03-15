@@ -14,7 +14,6 @@ import {
   X,
 } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -31,7 +30,7 @@ export default function PhotoBooth() {
   const [countdown, setCountdown] = useState<number | null>(null)
   const [isCancelled, setIsCancelled] = useState(false) // Track cancellation
 
-  const [selectedTimer, setSelectedTimer] = useState(3)
+  let [selectedTimer, setSelectedTimer] = useState(3)
 
   const [selectedFilter, setSelectedFilter] = useState<string>('none')
   const [isMirrored, setIsMirrored] = useState(false)
@@ -112,69 +111,46 @@ export default function PhotoBooth() {
     if (capturing) return
     setCapturing(true)
 
-    let count = selectedTimer // Use selectedTimer as the countdown value
-    setCountdown(count)
+    setCountdown(selectedTimer) // Initialize countdown
 
     countdownInterval.current = setInterval(() => {
-      count -= 1
-      setCountdown(count)
-
-      if (count === 0) {
-        clearInterval(countdownInterval.current as NodeJS.Timeout)
-        photo()
-        setCapturing(false)
-      }
+      setCountdown((prevCount) => {
+        if (prevCount && prevCount === 1) {
+          clearInterval(countdownInterval.current as NodeJS.Timeout)
+          setCountdown(null)
+          setCapturing(false)
+          photo()
+          return null
+        }
+        return (prevCount ?? selectedTimer) - 1 // Ensure prevCount is valid
+      })
     }, 1000)
   }
 
-  // //^ Auto Capture 4 Photos
+  //^ Auto Capture 4 Photos
   // const autoCapturePhotos = async () => {
   //   if (capturing) return
   //   setCapturing(true)
-  //   setIsCancelled(false)
-
-  //   const video = videoRef.current
-  //   if (!video) return
-
-  //   // Ensure video is fully loaded
-  //   while (video.readyState < 2) {
-  //     if (isCancelled) return
-  //     await new Promise((resolve) => setTimeout(resolve, 500))
-  //   }
-
   //   let capturedPhotos: string[] = []
 
-  //   for (let i = 0; i < 4; i++) {
-  //     if (isCancelled) return
-
-  //     // Countdown before first capture
-  //     if (i === 0) {
-  //       for (let j = 3; j > 0; j--) {
-  //         setCountdown(j)
-  //         await new Promise((resolve) => setTimeout(resolve, 1000))
-  //       }
+  //   for (let i = 0; i < 3; i++) {
+  //     // Countdown from 3
+  //     for (let j = 3; j > 0; j--) {
+  //       setCountdown(j)
+  //       await new Promise((resolve) => setTimeout(resolve, 1000)) // Wait 1s
   //     }
 
-  //     setCountdown(null)
-  //     await new Promise((resolve) => requestAnimationFrame(resolve))
+  //     await new Promise((resolve) => setTimeout(resolve, 500)) // Short delay
 
-  //     photo()
-  //     await new Promise((resolve) => setTimeout(resolve, 500))
+  //     takePhoto() // Capture the photo
 
-  //     if (isCancelled) return
+  //     await new Promise((resolve) => setTimeout(resolve, 500)) // Ensure canvas updates
+  //     capturedPhotos.push(canvasRef.current?.toDataURL('image/png') || '')
 
-  //     // Ensure the photo is valid
-  //     let newPhoto = canvasRef.current?.toDataURL('image/png') || ''
-  //     if (!newPhoto || newPhoto.length < 100) {
-  //       console.warn('Black frame detected, retrying...')
-  //       i--
-  //       continue
-  //     }
-
-  //     capturedPhotos.push(newPhoto)
-  //     setPhotos([...capturedPhotos])
+  //     setPhotos([...capturedPhotos]) // Update the state
   //   }
 
+  //   setCountdown(null)
   //   setCapturing(false)
   // }
 

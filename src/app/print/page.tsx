@@ -1,18 +1,17 @@
 'use client'
 
-import html2canvas from 'html2canvas'
 import { useEffect, useState } from 'react'
-
+import html2canvas from 'html2canvas-pro'
 import { Download, RotateCcw } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import confetti from 'canvas-confetti'
 
 export default function PrintPage() {
   const [photos, setPhotos] = useState<string[]>([])
-  const [bgColor, setBgColor] = useState('white') // Default background color
+  const [bgColor, setBgColor] = useState('#FFFFFF') // Default background color
   const [customText, setCustomText] = useState('') // Store custom text
   const [showDate, setShowDate] = useState(false) // Toggle date display
-  const [fontColor, setFontColor] = useState('white')
+  const [fontColor, setFontColor] = useState('#FFFFFF')
 
   const router = useRouter()
 
@@ -100,9 +99,9 @@ export default function PrintPage() {
             <h2 className='text-gray-400'>Select Background Color</h2>
             <div className='my-2 grid grid-cols-3 gap-2'>
               {[
-                'white',
-                '#0000',
-                '#001524',
+                '#FFFFFF',
+                '#000',
+                '#FF0000',
                 '#592E83',
                 '#EF798A',
                 '#ff579f',
@@ -147,14 +146,14 @@ export default function PrintPage() {
               <div className='my-2 flex gap-2'>
                 <button
                   className={`py-2 px-10 rounded-md text-black cursor-pointer  bg-white w-full border text-sm`}
-                  onClick={() => toggleColor('white')}
+                  onClick={() => toggleColor('#FFFFFF')}
                 >
                   White
                 </button>
 
                 <button
                   className={`py-2 px-10 rounded-md text-white cursor-pointer  bg-black w-full border text-sm`}
-                  onClick={() => toggleColor('black')}
+                  onClick={() => toggleColor('#000')}
                 >
                   Black
                 </button>
@@ -203,7 +202,7 @@ export default function PrintPage() {
               </div>
             </button>
             <button
-              onClick={() => router.push('/')}
+              onClick={() => router.push('/photobooth')}
               className='p-4 bg-black text-white rounded-full cursor-pointer hover:bg-zinc-800 hover:border-zinc-800 transition ease-in-out'
             >
               <RotateCcw />
