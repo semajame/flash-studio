@@ -17,7 +17,7 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body
-        className={`${GeistSans.variable} ${GeistMono.variable}  py-[3rem] px-[8rem] `}
+        className={`${GeistSans.variable} ${GeistMono.variable}  py-[3rem] px-[1rem] sm:px-[5rem]  `}
       >
         {children}
         {/* <Footer /> */}

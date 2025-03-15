@@ -83,7 +83,7 @@ export default function PrintPage() {
   }
 
   return (
-    <div className='flex items-start gap-10 justify-evenly'>
+    <div className='flex flex-col gap-10 lg:flex lg:flex-row lg:justify-evenly'>
       <div>
         <h1 className='text-3xl font-bold mb-5'>Photo Strip Editor</h1>
         <div className='flex gap-4 flex-col'>
@@ -127,12 +127,12 @@ export default function PrintPage() {
 
             {/* CUSTOM COLOR BACKGROUND */}
             <div className='my-5'>
-              <h2 className='text-gray-400'>Pick a custom color</h2>
+              <h2 className='text-gray-400'>Select a custom color</h2>
               <input
                 type='color'
                 value={bgColor}
                 onChange={(e) => setBgColor(e.target.value)}
-                className='w-full cursor-pointer h-12 p-1 border border-gray-500 '
+                className='w-full mt-2 cursor-pointer h-12 p-1 border border-gray-500 '
               />
             </div>
             <div className='my-5'>
@@ -144,26 +144,9 @@ export default function PrintPage() {
                 value={customText}
                 onChange={(e) => setCustomText(e.target.value)}
                 maxLength={30}
-                className='w-full h-11 px-3 border border-zinc-800 rounded-md bg-black  outline-none text-gray-400'
+                className='w-full h-11 px-3 mt-2 border border-zinc-800 rounded-md bg-black  outline-none text-gray-400'
                 placeholder='Enter your message here...'
               />
-            </div>
-
-            {/* Checkbox to Show Date */}
-            <div className='flex items-center gap-2'>
-              <input
-                type='checkbox'
-                id='showDate'
-                checked={showDate}
-                onChange={() => setShowDate(!showDate)}
-                className='w-5 h-5 cursor-pointer bg-zinc-800'
-              />
-              <label
-                htmlFor='showDate'
-                className='text-gray-400 cursor-pointer'
-              >
-                Show today's date
-              </label>
             </div>
 
             <div className='my-4'>
@@ -183,16 +166,37 @@ export default function PrintPage() {
                   Black
                 </button>
               </div>
+
+              <div className='mt-4'>
+                <h2 className='text-gray-400'>Select Custom Font Color</h2>
+                <input
+                  type='color'
+                  value={fontColor}
+                  onChange={(e) => setFontColor(e.target.value)}
+                  className='w-full cursor-pointer h-12 p-1 border border-gray-500 mt-2'
+                />
+              </div>
+            </div>
+
+            {/* Checkbox to Show Date */}
+            <div className='flex items-center gap-2'>
               <input
-                type='color'
-                value={fontColor}
-                onChange={(e) => setFontColor(e.target.value)}
-                className='w-full cursor-pointer h-12 p-1 border border-gray-500 mt-2'
+                type='checkbox'
+                id='showDate'
+                checked={showDate}
+                onChange={() => setShowDate(!showDate)}
+                className='w-5 h-5 cursor-pointer bg-zinc-800'
               />
+              <label
+                htmlFor='showDate'
+                className='text-gray-400 cursor-pointer'
+              >
+                Show today's date
+              </label>
             </div>
           </div>
           {/* Print Button */}
-          <div className='flex gap-2'>
+          <div className='flex gap-2 justify-center lg:justify-start'>
             <button
               onClick={() => {
                 handleDownload()
@@ -202,7 +206,7 @@ export default function PrintPage() {
             >
               <div className='flex items-center justify-center gap-2'>
                 <Download />
-                <p>Save Photo</p>
+                <p>Save</p>
               </div>
             </button>
             <button
@@ -216,9 +220,9 @@ export default function PrintPage() {
       </div>
 
       {/* Photo Display with Dynamic Background */}
-      <div>
+      <div className='flex justify-center'>
         <div
-          className='flex flex-col gap-4 p-7 pb-[7rem]'
+          className='flex flex-col gap-4 p-7 pb-[7rem] w-[350px]  '
           id='photoStrip'
           style={{ backgroundColor: bgColor }} // Apply background color
         >
