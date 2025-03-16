@@ -5,14 +5,7 @@ import { useRef, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { filters } from '../utils/filters' // Adjust the path as needed
 
-import {
-  Eclipse,
-  Ban,
-  RotateCcw,
-  ArrowRight,
-  ArrowRightLeft,
-  X,
-} from 'lucide-react'
+import { RotateCcw, ArrowRight, Aperture, Camera, Timer } from 'lucide-react'
 
 import {
   Select,
@@ -21,6 +14,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+
+import { motion, AnimatePresence } from 'framer-motion'
+import { SelectGroup } from '@radix-ui/react-select'
 
 export default function PhotoBooth() {
   const videoRef = useRef<HTMLVideoElement | null>(null)
@@ -40,6 +36,7 @@ export default function PhotoBooth() {
 
   useEffect(() => {
     startCamera() // Restart the camera when the component mounts
+    localStorage.removeItem('capturedPhotos') // Clear stored photos
   }, [])
 
   //^ start camera
@@ -171,25 +168,38 @@ export default function PhotoBooth() {
         <div className='mb-4 flex justify-between items-center'>
           <button
             onClick={startCamera}
-            className='px-6 py-4 bg-zinc-800 text-white rounded-full cursor-pointer inline-block'
+            className='px-6 py-4 bg-black text-white rounded-full cursor-pointer flex gap-2 hover:bg-white hover:text-black  transition ease-in-out duration-200'
           >
+            <Camera />
             Start Camera
           </button>
           {/* Timer Selection UI */}
           <Select onValueChange={(value) => setSelectedTimer(Number(value))}>
-            <SelectTrigger className='p-2 rounded bg-black text-white cursor-pointer '>
+            <SelectTrigger className='rounded-full bg-black text-white cursor-pointer border-none'>
+              <Timer />
               <SelectValue placeholder='Select Timer' />
             </SelectTrigger>
-            <SelectContent className='bg-black text-white rounded'>
-              <SelectItem value='3' className='hover:bg-gray-800'>
-                3 Seconds
-              </SelectItem>
-              <SelectItem value='5' className='hover:bg-gray-800'>
-                5 Seconds
-              </SelectItem>
-              <SelectItem value='10' className='hover:bg-gray-800'>
-                10 Seconds
-              </SelectItem>
+            <SelectContent className='bg-black text-white rounded border-none'>
+              <SelectGroup className='text-center'>
+                <SelectItem
+                  value='3'
+                  className='hover:bg-zinc-800 cursor-pointer '
+                >
+                  3s delay
+                </SelectItem>
+                <SelectItem
+                  value='5'
+                  className='hover:bg-zinc-800 cursor-pointer'
+                >
+                  5s delay
+                </SelectItem>
+                <SelectItem
+                  value='10'
+                  className='hover:bg-zinc-800 text-center'
+                >
+                  10s delay
+                </SelectItem>
+              </SelectGroup>
             </SelectContent>
           </Select>
         </div>
@@ -208,7 +218,7 @@ export default function PhotoBooth() {
 
           {countdown !== null && countdown > 0 && (
             <h1
-              className='absolute text-3xl text-white font-bold  w-20 h-20 flex items-center justify-center rounded-full animate-ping
+              className='absolute text-6xl text-white font-bold  w-20 h-20 flex items-center justify-center rounded-full animate-ping
       top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'
             >
               {countdown}
@@ -222,9 +232,10 @@ export default function PhotoBooth() {
               <div className='flex gap-4'>
                 <button
                   onClick={takePhoto}
-                  className='px-6 py-4 bg-black text-white rounded-full cursor-pointer hover:bg-white hover:text-black transition ease-in-out duration-200'
+                  className='px-6 py-4 bg-black flex gap-2 text-white rounded-full cursor-pointer hover:bg-white hover:text-black transition ease-in-out duration-200'
                 >
-                  Capture Photo
+                  <Aperture />
+                  Take Photo
                 </button>
                 {/* {photos.length < 1 && ( // Keep Auto Capture visible
                   <button
@@ -249,9 +260,9 @@ export default function PhotoBooth() {
                   localStorage.setItem('capturedPhotos', JSON.stringify(photos))
                   router.push('/print')
                 }}
-                className='px-6 py-4 bg-green-600 hover:bg-green-800 transition ease-in-out text-white rounded-full cursor-pointer'
+                className='px-6 py-4 bg-green-600 hover:bg-green-800 transition ease-in-out text-white rounded-full cursor-pointer flex gap-2'
               >
-                <ArrowRight />
+                Next <ArrowRight />
               </button>
               <button
                 onClick={retakePhoto}
@@ -293,22 +304,38 @@ export default function PhotoBooth() {
           )}
         </div>
       </div>
+
       <div className='flex flex-col items-center gap-4 min-h-[220px] lg:w-[300px] w-full justify-center'>
-        {photos.length > 0 ? (
-          photos.map((photo, index) => (
-            <div key={index}>
-              <img
-                src={photo}
-                alt={`Captured ${index + 1}`}
-                className='w-full max-w-md border border-zinc-600 rounded h-auto object-contain'
-              />
-            </div>
-          ))
-        ) : (
-          <div className='h-[200px] w-full flex items-center justify-center text-white'>
-            No Photos Yet
-          </div>
-        )}
+        <AnimatePresence mode='popLayout'>
+          {photos.length > 0 ? (
+            photos.map((photo, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, scale: 0.5 }} // Fade-in & scale up when added
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.5 }} // Fade-out & scale down when removed
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+              >
+                <img
+                  src={photo}
+                  alt={`Captured ${index + 1}`}
+                  className='w-full max-w-md border border-zinc-600 rounded h-auto object-contain'
+                />
+              </motion.div>
+            ))
+          ) : (
+            <motion.div
+              key='no-photos'
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className='h-[200px] w-full flex items-center justify-center text-white'
+            >
+              No Photos Yet
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   )

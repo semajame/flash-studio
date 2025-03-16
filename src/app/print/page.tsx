@@ -6,15 +6,17 @@ import { Download, RotateCcw } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import confetti from 'canvas-confetti'
 
+import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
+
 export default function PrintPage() {
   const [photos, setPhotos] = useState<string[]>([])
   const [bgColor, setBgColor] = useState('#FFFFFF') // Default background color
   const [customText, setCustomText] = useState('') // Store custom text
   const [showDate, setShowDate] = useState(false) // Toggle date display
-  const [fontColor, setFontColor] = useState('#FFFFFF')
+  const [fontColor, setFontColor] = useState('#000')
   const [selectedPhotoStrip, setSelectedPhotoStrip] = useState<string>('')
-  const [selectedBorderRadius, setSelectedBorderRadius] =
-    useState('rounded-none')
+  const [isRounded, setIsRounded] = useState(false)
 
   const router = useRouter()
 
@@ -25,7 +27,12 @@ export default function PrintPage() {
     }
   }, [])
 
-  const todayDate = new Date().toLocaleDateString() // Get today's date
+  const todayDate = new Date().toLocaleDateString('en-US', {
+    weekday: 'long', // Example: "Saturday"
+    month: 'long', // Example: "March"
+    day: 'numeric', // Example: "16"
+    year: 'numeric', // Example: "2025"
+  })
 
   //^ PHOTO STRIP
   const handlePhotoStripChange = (strip: string) => {
@@ -83,15 +90,15 @@ export default function PrintPage() {
   }
 
   return (
-    <div className='flex flex-col gap-10 lg:flex lg:flex-row lg:justify-evenly py-10'>
-      <div>
+    <div className='flex flex-col sm:gap-5 sm:flex sm:flex-row sm:justify-evenly py-10 px-5  '>
+      <div className='sm:max-w-[500px] flex-1 justify-center'>
         <h1 className='text-3xl font-bold mb-5'>Photo Strip Editor</h1>
         <div className='flex gap-4 flex-col'>
           <div>
             <h2 className='text-gray-400'>Select Photo Strip</h2>
             <div className='my-2 grid grid-cols-3 gap-2'>
               <button
-                className={`py-2 px-10 border border-zinc-800 rounded-md bg-black text-white cursor-pointer text-xs ${
+                className={`py-2 sm:px-10 border border-zinc-800 rounded-md bg-black text-white cursor-pointer text-xs ${
                   selectedPhotoStrip === '' ? 'ring-2 ring-white' : ''
                 }`}
                 onClick={() => handlePhotoStripChange('')}
@@ -99,7 +106,7 @@ export default function PrintPage() {
                 Default
               </button>
               <button
-                className={`py-2 px-10 border border-zinc-800 rounded-md bg-black text-white cursor-pointer text-xs ${
+                className={`py-2 sm:px-10 border border-zinc-800 rounded-md bg-black text-white cursor-pointer text-xs ${
                   selectedPhotoStrip === '/strips/film-strip.png'
                     ? 'ring-2 ring-white'
                     : ''
@@ -109,7 +116,7 @@ export default function PrintPage() {
                 Film
               </button>
               <button
-                className={`py-2 px-10 border border-zinc-800 rounded-md bg-black text-white cursor-pointer text-xs ${
+                className={`py-2 sm:px-10 border border-zinc-800 rounded-md bg-black text-white cursor-pointer text-xs ${
                   selectedPhotoStrip === '/strips/heart-strip.png'
                     ? 'ring-2 ring-white'
                     : ''
@@ -121,7 +128,7 @@ export default function PrintPage() {
                 Hearts
               </button>
               <button
-                className={`py-2 px-10 border border-zinc-800 rounded-md bg-black text-white cursor-pointer text-xs ${
+                className={`py-2 sm:px-10 border border-zinc-800 rounded-md bg-black text-white cursor-pointer text-xs ${
                   selectedPhotoStrip === '/strips/cute-pink-strip.png'
                     ? 'ring-2 ring-white'
                     : ''
@@ -133,7 +140,7 @@ export default function PrintPage() {
                 Cute
               </button>
               <button
-                className={`py-2 px-10 border border-zinc-800 rounded-md bg-black text-white cursor-pointer text-xs ${
+                className={`py-2 sm:px-10 border border-zinc-800 rounded-md bg-black text-white cursor-pointer text-xs ${
                   selectedPhotoStrip === '/strips/futuristic-strip.png'
                     ? 'ring-2 ring-white'
                     : ''
@@ -145,7 +152,7 @@ export default function PrintPage() {
                 Futuristic
               </button>
               <button
-                className={`py-2 px-10 border border-zinc-800 rounded-md bg-black text-white cursor-pointer text-xs ${
+                className={`py-2 sm:px-10 border border-zinc-800 rounded-md bg-black text-white cursor-pointer text-xs ${
                   selectedPhotoStrip === '/strips/beach-strip.png'
                     ? 'ring-2 ring-white'
                     : ''
@@ -160,7 +167,12 @@ export default function PrintPage() {
           </div>
           {/* Background Color Selection */}
           <div>
-            <h2 className='text-gray-400'>Select Background Color</h2>
+            <div className='flex flex-col'>
+              <h2 className='text-gray-400'>Select Background Color</h2>
+              <span className='text-xs text-gray-400 mt-1'>
+                (default the strip for the background to work)
+              </span>
+            </div>
             <div className='my-2 grid grid-cols-3 gap-2'>
               {[
                 '#FFFFFF',
@@ -172,7 +184,7 @@ export default function PrintPage() {
               ].map((color) => (
                 <button
                   key={color}
-                  className={`py-4 px-10 rounded-md text-white cursor-pointer border${
+                  className={`py-4 sm:px-10 rounded-md text-white cursor-pointer border${
                     bgColor === color ? 'ring-2 ring-white' : ''
                   }`}
                   style={{ backgroundColor: color }}
@@ -192,74 +204,17 @@ export default function PrintPage() {
               />
             </div>
 
-            {/* Border Radius Selection Buttons */}
-            <div className='my-4'>
-              <h2 className='text-gray-400 '>Select Border Radius</h2>
-              <div className='my-2 grid grid-cols-3 gap-2'>
-                <button
-                  className={`py-2 px-4 border border-zinc-800 rounded-md bg-black text-white cursor-pointer text-xs ${
-                    selectedBorderRadius === 'rounded-none'
-                      ? 'ring-2 ring-white'
-                      : ''
-                  }`}
-                  onClick={() => setSelectedBorderRadius('rounded-none')}
-                >
-                  None
-                </button>
-                <button
-                  className={`py-2 px-4 border border-zinc-800 rounded-md bg-black text-white cursor-pointer text-xs ${
-                    selectedBorderRadius === 'rounded-md'
-                      ? 'ring-2 ring-white'
-                      : ''
-                  }`}
-                  onClick={() => setSelectedBorderRadius('rounded-md')}
-                >
-                  Small
-                </button>
-                <button
-                  className={`py-2 px-4 border border-zinc-800 rounded-md bg-black text-white cursor-pointer text-xs ${
-                    selectedBorderRadius === 'rounded-lg'
-                      ? 'ring-2 ring-white'
-                      : ''
-                  }`}
-                  onClick={() => setSelectedBorderRadius('rounded-lg')}
-                >
-                  Medium
-                </button>
-                <button
-                  className={`py-2 px-4 border border-zinc-800 rounded-md bg-black text-white cursor-pointer text-xs ${
-                    selectedBorderRadius === 'rounded-xl'
-                      ? 'ring-2 ring-white'
-                      : ''
-                  }`}
-                  onClick={() => setSelectedBorderRadius('rounded-xl')}
-                >
-                  Large
-                </button>
-                <button
-                  className={`py-2 px-4 border border-zinc-800 rounded-md bg-black text-white cursor-pointer text-xs ${
-                    selectedBorderRadius === 'rounded-full'
-                      ? 'ring-2 ring-white'
-                      : ''
-                  }`}
-                  onClick={() => setSelectedBorderRadius('rounded-full')}
-                >
-                  Circle
-                </button>
-              </div>
-            </div>
-
             {/* CUSTOM TEXT */}
             <div className='my-5'>
               <h2 className='text-gray-400 '>
-                What do you want to say about the photo? (max 30 chars)
+                What do you want to say about the photo? (max 100 chars)
               </h2>
-              <input
-                type='text'
+              <Textarea
                 value={customText}
                 onChange={(e) => setCustomText(e.target.value)}
-                maxLength={30}
-                className='w-full h-11 px-3 mt-2 border border-zinc-800 rounded-md bg-black  outline-none text-gray-400'
+                maxLength={100}
+                rows={4} // Adjust height dynamically
+                className='w-full px-3 mt-2 border border-zinc-800 rounded-md bg-black outline-none text-gray-400 break-words'
                 placeholder='Enter your message here...'
               />
             </div>
@@ -269,14 +224,14 @@ export default function PrintPage() {
               <h2 className='text-gray-400'>Select Font Color</h2>
               <div className='my-2 flex gap-2'>
                 <button
-                  className={`py-2 px-10 rounded-md text-black cursor-pointer  bg-white w-full border text-sm`}
+                  className={`py-2 sm:px-10 rounded-md text-black cursor-pointer  bg-white w-full border text-sm`}
                   onClick={() => toggleColor('#FFFFFF')}
                 >
                   White
                 </button>
 
                 <button
-                  className={`py-2 px-10 rounded-md text-white cursor-pointer  bg-black w-full border text-sm`}
+                  className={`py-2 sm:px-10 rounded-md text-white cursor-pointer  bg-black w-full border text-sm`}
                   onClick={() => toggleColor('#000')}
                 >
                   Black
@@ -296,18 +251,30 @@ export default function PrintPage() {
 
             {/* Checkbox to Show Date */}
             <div className='flex items-center gap-2'>
-              <input
-                type='checkbox'
+              <Checkbox
                 id='showDate'
                 checked={showDate}
-                onChange={() => setShowDate(!showDate)}
+                onCheckedChange={(checked) => setShowDate(checked === true)} // Explicitly convert to boolean
                 className='w-5 h-5 cursor-pointer bg-zinc-800'
               />
+
               <label
                 htmlFor='showDate'
                 className='text-gray-400 cursor-pointer'
               >
                 Show today's date
+              </label>
+            </div>
+
+            <div className='flex items-center gap-2 mt-2'>
+              <Checkbox
+                id='rounded'
+                checked={isRounded}
+                onCheckedChange={(checked) => setIsRounded(checked === true)} // Explicitly convert to boolean
+                className='w-5 h-5 cursor-pointer bg-zinc-800'
+              />
+              <label htmlFor='rounded' className='text-gray-400 cursor-pointer'>
+                Rounded Corners
               </label>
             </div>
           </div>
@@ -336,9 +303,9 @@ export default function PrintPage() {
       </div>
 
       {/* Photo Display with Dynamic Background */}
-      <div className='flex justify-center'>
+      <div className='flex justify-center lg:max-w-2xl mt-10'>
         <div
-          className='flex flex-col gap-4 p-7 pb-[7rem] w-[350px]  '
+          className='flex flex-col gap-4 p-7  w-[350px] h-auto'
           id='photoStrip'
           style={{
             backgroundColor: bgColor,
@@ -352,19 +319,25 @@ export default function PrintPage() {
               key={index}
               src={photo}
               alt={`Photo ${index + 1}`}
-              className={`w-full max-w-md h-auto ${selectedBorderRadius}`}
+              className={`w-full max-w-md h-auto ${
+                isRounded ? 'rounded-md' : ''
+              }`}
             />
           ))}
 
-          <div>
+          <div className='flex flex-col justify-between h-[100px]'>
             {customText && (
-              <p className='text-sm font-semibold' style={{ color: fontColor }}>
+              <p
+                className='text-sm text-center break-words'
+                style={{ color: fontColor }}
+              >
                 {customText}
               </p>
             )}
+
             {/* Display Date if Checkbox is Checked */}
             {showDate && (
-              <p className='text-sm font-bold' style={{ color: fontColor }}>
+              <p className='text-sm text-center' style={{ color: fontColor }}>
                 {todayDate}
               </p>
             )}
