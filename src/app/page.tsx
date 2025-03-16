@@ -10,10 +10,15 @@ export default function LandingPage() {
       <div className='min-h-screen  text-white flex flex-col items-center justify-center relative '>
         {/* Header with buttons */}
         <div className='absolute top-10 sm:right-15 right-0 flex gap-4'>
-          <Link href='https://github.com/semajame' passHref>
+          <Link
+            href='https://github.com/semajame'
+            passHref
+            aria-label='github link'
+          >
             <Button
               variant='ghost'
               size='icon'
+              aria-label='github button'
               className='text-white hover:bg-white/10 cursor-pointer'
             >
               <svg
@@ -34,8 +39,8 @@ export default function LandingPage() {
           </Link>
         </div>
         {/* New snippets banner */}
-        <div className='mb-12'>
-          <span className='inline-flex h-full animate-background-shine cursor-pointer items-center justify-center rounded-full border border-gray-800 bg-[linear-gradient(110deg,#000,45%,#4D4B4B,55%,#000)] bg-[length:250%_100%] px-3 py-1 text-xs font-medium text-gray-300'>
+        <div className='mb-10'>
+          <span className='inline-flex cursor-pointer items-center justify-center rounded-full border border-gray-800 bg-gray-950 px-3 py-1 text-xs font-medium text-gray-300 backdrop-blur-3xl'>
             Made by ⚡ James
           </span>
         </div>
@@ -49,7 +54,7 @@ export default function LandingPage() {
           </h1>
           <p className='text-md md:text-lg text-gray-300 mb-12 max-w-2xl mx-auto'>
             Capture, smile and share. Snap your best moments with ease, simply
-            pose, click capture and customize your photo strip!
+            pose, click and customize your photo strip!
           </p>
           <div className='flex flex-wrap gap-4 justify-center'>
             <Link href='/photobooth' passHref>

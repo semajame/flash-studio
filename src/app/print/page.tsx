@@ -28,7 +28,6 @@ export default function PrintPage() {
   }, [])
 
   const todayDate = new Date().toLocaleDateString('en-US', {
-    weekday: 'long', // Example: "Saturday"
     month: 'long', // Example: "March"
     day: 'numeric', // Example: "16"
     year: 'numeric', // Example: "2025"
@@ -92,7 +91,7 @@ export default function PrintPage() {
   return (
     <div className='flex flex-col sm:gap-5 sm:flex sm:flex-row sm:justify-evenly py-10 px-5  '>
       <div className='sm:max-w-[500px] flex-1 justify-center'>
-        <h1 className='text-3xl font-bold mb-5'>Photo Strip Editor</h1>
+        <h1 className='text-4xl font-bold mb-5'>Photo Strip Editor</h1>
         <div className='flex gap-4 flex-col'>
           <div>
             <h2 className='text-gray-400'>Select Photo Strip</h2>
@@ -279,7 +278,7 @@ export default function PrintPage() {
             </div>
           </div>
           {/* Print Button */}
-          <div className='flex gap-2 justify-center lg:justify-start'>
+          <div className='flex gap-2 justify-center lg:justify-between'>
             <button
               onClick={() => {
                 handleDownload()

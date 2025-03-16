@@ -28,7 +28,7 @@ export default function PhotoBooth() {
 
   let [selectedTimer, setSelectedTimer] = useState(3)
 
-  const [selectedFilter, setSelectedFilter] = useState<string>('none')
+  const [selectedFilter, setSelectedFilter] = useState<string>('None')
   const [isMirrored, setIsMirrored] = useState(false)
   const countdownInterval = useRef<NodeJS.Timeout | null>(null)
 
@@ -111,9 +111,14 @@ export default function PhotoBooth() {
 
     const countdownFn = (count: number) => {
       if (count === 0) {
-        setCountdown(null) // Reset countdown
-        setCapturing(false)
-        photo() // Take the photo
+        // When countdown reaches zero, show smile
+        setCountdown(null)
+
+        setTimeout(() => {
+          setCapturing(false)
+          photo() // Capture the photo
+        }, 500)
+
         return
       }
 
@@ -123,6 +128,7 @@ export default function PhotoBooth() {
       }, 1000)
     }
 
+    // Start the countdown
     countdownFn(selectedTimer)
   }
 
@@ -195,7 +201,7 @@ export default function PhotoBooth() {
                 </SelectItem>
                 <SelectItem
                   value='10'
-                  className='hover:bg-zinc-800 text-center'
+                  className='hover:bg-zinc-800 cursor-pointer'
                 >
                   10s delay
                 </SelectItem>
@@ -218,7 +224,7 @@ export default function PhotoBooth() {
 
           {countdown !== null && countdown > 0 && (
             <h1
-              className='absolute text-6xl text-white font-bold  w-20 h-20 flex items-center justify-center rounded-full animate-ping
+              className='absolute text-7xl text-white font-bold  w-20 h-20 flex items-center justify-center rounded-full animate-ping
       top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'
             >
               {countdown}
