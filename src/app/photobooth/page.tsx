@@ -106,25 +106,27 @@ export default function PhotoBooth() {
     )
   }
 
-  //^ capture photo
+  //^ TAKE PHOTO
   const takePhoto = () => {
     if (capturing) return
     setCapturing(true)
+    setCountdown(selectedTimer)
 
-    setCountdown(selectedTimer) // Initialize countdown
+    const countdownFn = (count: number) => {
+      if (count === 0) {
+        setCountdown(null) // Reset countdown
+        setCapturing(false)
+        photo() // Take the photo
+        return
+      }
 
-    countdownInterval.current = setInterval(() => {
-      setCountdown((prevCount) => {
-        if (prevCount && prevCount === 1) {
-          clearInterval(countdownInterval.current as NodeJS.Timeout)
-          setCountdown(null)
-          setCapturing(false)
-          photo()
-          return null
-        }
-        return (prevCount ?? selectedTimer) - 1 // Ensure prevCount is valid
-      })
-    }, 1000)
+      setTimeout(() => {
+        setCountdown((prev) => (prev ? prev - 1 : null))
+        countdownFn(count - 1) // Recursively call function
+      }, 1000)
+    }
+
+    countdownFn(selectedTimer)
   }
 
   //^ Auto Capture 4 Photos
@@ -206,7 +208,7 @@ export default function PhotoBooth() {
 
           {countdown !== null && countdown > 0 && (
             <h1
-              className='absolute text-3xl text-white font-bold bg-zinc-400 w-20 h-20 flex items-center justify-center rounded-full animate-ping
+              className='absolute text-3xl text-white font-bold  w-20 h-20 flex items-center justify-center rounded-full animate-ping
       top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'
             >
               {countdown}
