@@ -69,15 +69,16 @@ export default function PhotoBooth() {
     const videoWidth = video.videoWidth
     const videoHeight = video.videoHeight
 
-    // Maintain aspect ratio
-    const aspectRatio = videoWidth / videoHeight
-
-    // Set canvas width and height to match video dimensions
+    // Set canvas width and height BEFORE applying filters
     canvas.width = videoWidth
     canvas.height = videoHeight
 
     // Clear the previous drawing
     ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    // Apply the selected filter BEFORE transformations
+    const filter = filters[selectedFilter] || ''
+    ctx.filter = filter
 
     // Apply mirroring if enabled
     if (isMirrored) {
@@ -85,11 +86,7 @@ export default function PhotoBooth() {
       ctx.scale(-1, 1)
     }
 
-    // Apply the selected filter
-    const filter = filters[selectedFilter] || ''
-    ctx.filter = filter
-
-    // Adjust `drawImage()` to maintain aspect ratio
+    // Draw the video frame onto the canvas
     ctx.drawImage(video, 0, 0, videoWidth, videoHeight)
 
     // Reset transformations and filters
@@ -210,7 +207,13 @@ export default function PhotoBooth() {
           </Select>
         </div>
         <div className='relative'>
-          <div style={{ filter: filters[selectedFilter] }}>
+          <div
+            style={{
+              filter: filters[selectedFilter],
+              WebkitFilter: filters[selectedFilter],
+              willChange: 'filter, transform, opacity',
+            }}
+          >
             <video
               ref={videoRef}
               autoPlay
