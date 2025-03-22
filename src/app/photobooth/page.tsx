@@ -5,7 +5,14 @@ import { useRef, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { filters } from '../utils/filters' // Adjust the path as needed
 
-import { RotateCcw, ArrowRight, Aperture, Camera, Timer } from 'lucide-react'
+import {
+  RotateCcw,
+  ArrowRight,
+  Aperture,
+  Camera,
+  Timer,
+  Repeat,
+} from 'lucide-react'
 
 import {
   Select,
@@ -13,20 +20,21 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectGroup,
 } from '@/components/ui/select'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { SelectGroup } from '@radix-ui/react-select'
 
 export default function PhotoBooth() {
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [photos, setPhotos] = useState<string[]>([])
-  const [capturing, setCapturing] = useState(false)
+
   const [countdown, setCountdown] = useState<number | null>(null)
   const [isCancelled, setIsCancelled] = useState(false) // Track cancellation
 
   let [selectedTimer, setSelectedTimer] = useState(3)
+  const autoCaptureActive = useRef(false) // Track if auto capture is active
 
   const [selectedFilter, setSelectedFilter] = useState<string>('None')
   const [isMirrored, setIsMirrored] = useState(false)
@@ -36,7 +44,9 @@ export default function PhotoBooth() {
 
   useEffect(() => {
     startCamera() // Restart the camera when the component mounts
-    localStorage.removeItem('capturedPhotos') // Clear stored photos
+    localStorage.clear() // Clear stored photos
+
+    console.log(localStorage)
   }, [])
 
   //^ start camera
@@ -73,8 +83,11 @@ export default function PhotoBooth() {
     canvas.width = videoWidth
     canvas.height = videoHeight
 
-    // Clear the previous drawing
+    // Clear previous drawing
     ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    // Force Safari to recognize filters
+    ctx.globalCompositeOperation = 'copy'
 
     // Apply the selected filter BEFORE transformations
     const filter = filters[selectedFilter] || ''
@@ -92,6 +105,7 @@ export default function PhotoBooth() {
     // Reset transformations and filters
     ctx.setTransform(1, 0, 0, 1, 0, 0)
     ctx.filter = 'none'
+    ctx.globalCompositeOperation = 'source-over' // Reset operation
 
     // Convert canvas content to image
     const newPhoto = canvas.toDataURL('image/png')
@@ -102,8 +116,6 @@ export default function PhotoBooth() {
 
   //^ TAKE PHOTO
   const takePhoto = () => {
-    if (capturing) return
-    setCapturing(true)
     setCountdown(selectedTimer)
 
     const countdownFn = (count: number) => {
@@ -112,7 +124,6 @@ export default function PhotoBooth() {
         setCountdown(null)
 
         setTimeout(() => {
-          setCapturing(false)
           photo() // Capture the photo
         }, 500)
 
@@ -131,38 +142,40 @@ export default function PhotoBooth() {
 
   //^ Auto Capture 4 Photos
   // const autoCapturePhotos = async () => {
-  //   if (capturing) return
-  //   setCapturing(true)
-  //   let capturedPhotos: string[] = []
+  //   autoCaptureActive.current = true // Start auto capture
 
-  //   for (let i = 0; i < 3; i++) {
-  //     // Countdown from 3
-  //     for (let j = 3; j > 0; j--) {
-  //       setCountdown(j)
-  //       await new Promise((resolve) => setTimeout(resolve, 1000)) // Wait 1s
+  //   for (let count = 0; count < 4; count++) {
+  //     if (!autoCaptureActive.current) break // Stop auto capture if retake is clicked
+
+  //     // Countdown from 3 to 1
+  //     for (let i = 3; i > 0; i--) {
+  //       if (!autoCaptureActive.current) break // Stop if retake is clicked
+  //       setCountdown(i)
+  //       await new Promise((resolve) => setTimeout(resolve, 1000))
   //     }
 
-  //     await new Promise((resolve) => setTimeout(resolve, 500)) // Short delay
+  //     if (!autoCaptureActive.current) break // Stop if retake is clicked
 
-  //     takePhoto() // Capture the photo
+  //     await new Promise((resolve) => setTimeout(resolve, 1000))
 
-  //     await new Promise((resolve) => setTimeout(resolve, 500)) // Ensure canvas updates
-  //     capturedPhotos.push(canvasRef.current?.toDataURL('image/png') || '')
+  //     takePhoto()
 
-  //     setPhotos([...capturedPhotos]) // Update the state
+  //     setCountdown(null)
+  //     await new Promise((resolve) => setTimeout(resolve, 1000)) // Short delay before next countdown
   //   }
 
   //   setCountdown(null)
-  //   setCapturing(false)
+  //   autoCaptureActive.current = false // Auto Capture stopped
   // }
 
   //^ Retake Photos
   const retakePhoto = () => {
-    setIsCancelled(true)
-    clearInterval(countdownInterval.current as NodeJS.Timeout)
-    setPhotos([])
-    setCountdown(null)
-    setCapturing(false)
+    autoCaptureActive.current = false // Stop auto capture
+    if (countdownInterval.current) clearInterval(countdownInterval.current) // Clear countdown
+    setPhotos([]) // Reset photos
+    setCountdown(null) // Reset countdown
+
+    localStorage.clear()
   }
 
   return (
@@ -249,8 +262,9 @@ export default function PhotoBooth() {
                 {/* {photos.length < 1 && ( // Keep Auto Capture visible
                   <button
                     onClick={autoCapturePhotos}
-                    className='px-6 py-4 bg-black text-white rounded-full cursor-pointer hover:bg-white hover:text-black transition ease-in-out duration-200'
+                    className='px-6 py-4 bg-black flex gap-2 text-white rounded-full cursor-pointer hover:bg-white hover:text-black transition ease-in-out duration-200'
                   >
+                    <Repeat />
                     Auto Capture
                   </button>
                 )} */}
@@ -264,7 +278,12 @@ export default function PhotoBooth() {
             </div>
           ) : (
             <div className='flex gap-2 justify-between'>
-              <button
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+                whileHover={{ scale: 1.0 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => {
                   localStorage.setItem('capturedPhotos', JSON.stringify(photos))
                   router.push('/print')
@@ -272,7 +291,7 @@ export default function PhotoBooth() {
                 className='px-6 py-4 bg-green-600 hover:bg-green-800 transition ease-in-out text-white rounded-full cursor-pointer flex gap-2'
               >
                 Next <ArrowRight />
-              </button>
+              </motion.button>
               <button
                 onClick={retakePhoto}
                 className='p-4 bg-black text-white rounded-full cursor-pointer hover:bg-zinc-800 hover:border-zinc-800 transition ease-in-out'
