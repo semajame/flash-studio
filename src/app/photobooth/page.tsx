@@ -31,14 +31,12 @@ export default function PhotoBooth() {
   const [photos, setPhotos] = useState<string[]>([])
 
   const [countdown, setCountdown] = useState<number | null>(null)
-  const [isCancelled, setIsCancelled] = useState(false) // Track cancellation
+  const [capturing, setCapturing] = useState(false) // Define capturing state
 
   let [selectedTimer, setSelectedTimer] = useState(3)
   const autoCaptureActive = useRef(false) // Track if auto capture is active
 
   const [selectedFilter, setSelectedFilter] = useState<string>('None')
-  const [isMirrored, setIsMirrored] = useState(false)
-  const countdownInterval = useRef<NodeJS.Timeout | null>(null)
 
   const router = useRouter()
 
@@ -94,10 +92,8 @@ export default function PhotoBooth() {
     ctx.filter = filter
 
     // Apply mirroring if enabled
-    if (isMirrored) {
-      ctx.translate(canvas.width, 0)
-      ctx.scale(-1, 1)
-    }
+    ctx.translate(canvas.width, 0)
+    ctx.scale(-1, 1)
 
     // Draw the video frame onto the canvas
     ctx.drawImage(video, 0, 0, videoWidth, videoHeight)
@@ -116,15 +112,18 @@ export default function PhotoBooth() {
 
   //^ TAKE PHOTO
   const takePhoto = () => {
+    if (capturing) return // Prevent multiple captures
+    setCapturing(true) // Disable button while capturing
+
     setCountdown(selectedTimer)
 
     const countdownFn = (count: number) => {
       if (count === 0) {
-        // When countdown reaches zero, show smile
         setCountdown(null)
 
         setTimeout(() => {
           photo() // Capture the photo
+          setCapturing(false) // Enable button after capture
         }, 500)
 
         return
@@ -132,49 +131,49 @@ export default function PhotoBooth() {
 
       setTimeout(() => {
         setCountdown((prev) => (prev ? prev - 1 : null))
-        countdownFn(count - 1) // Recursively call function
+        countdownFn(count - 1) // Continue countdown
       }, 1000)
     }
 
-    // Start the countdown
     countdownFn(selectedTimer)
   }
 
   //^ Auto Capture 4 Photos
-  // const autoCapturePhotos = async () => {
-  //   autoCaptureActive.current = true // Start auto capture
+  const autoCapturePhotos = async () => {
+    autoCaptureActive.current = true
+    if (capturing) return
+    setCapturing(true)
+    localStorage.clear() // ✅ Clear local storage before capturing
+    setPhotos([]) // ✅ Clear previous photos
 
-  //   for (let count = 0; count < 4; count++) {
-  //     if (!autoCaptureActive.current) break // Stop auto capture if retake is clicked
+    for (let count = 0; count < 4; count++) {
+      // Countdown from 3 to 1
+      for (let i = 3; i > 0; i--) {
+        setCountdown(i)
+        await new Promise((resolve) => setTimeout(resolve, 1000)) // 1 sec delay
+      }
 
-  //     // Countdown from 3 to 1
-  //     for (let i = 3; i > 0; i--) {
-  //       if (!autoCaptureActive.current) break // Stop if retake is clicked
-  //       setCountdown(i)
-  //       await new Promise((resolve) => setTimeout(resolve, 1000))
-  //     }
+      setCountdown(null) // Clear countdown before taking the photo
 
-  //     if (!autoCaptureActive.current) break // Stop if retake is clicked
+      // Ensure the camera has time to render before capturing
+      await new Promise((resolve) => setTimeout(resolve, 500))
 
-  //     await new Promise((resolve) => setTimeout(resolve, 1000))
+      // ✅ Capture the photo and wait for it to complete
+      photo()
 
-  //     takePhoto()
+      await new Promise((resolve) => setTimeout(resolve, 500)) // UI update delay
+    }
 
-  //     setCountdown(null)
-  //     await new Promise((resolve) => setTimeout(resolve, 1000)) // Short delay before next countdown
-  //   }
-
-  //   setCountdown(null)
-  //   autoCaptureActive.current = false // Auto Capture stopped
-  // }
+    setCapturing(false)
+    autoCaptureActive.current = false
+  }
 
   //^ Retake Photos
   const retakePhoto = () => {
     autoCaptureActive.current = false // Stop auto capture
-    if (countdownInterval.current) clearInterval(countdownInterval.current) // Clear countdown
     setPhotos([]) // Reset photos
     setCountdown(null) // Reset countdown
-
+    setCapturing(false)
     localStorage.clear()
   }
 
@@ -231,10 +230,7 @@ export default function PhotoBooth() {
               ref={videoRef}
               autoPlay
               playsInline
-              className={`w-full border border-zinc-800 rounded-lg object-cover h-auto`}
-              style={{
-                transform: isMirrored ? 'scaleX(-1)' : 'none',
-              }}
+              className={`w-full border border-zinc-800 rounded-lg object-cover h-auto -scale-x-100`}
             />
           </div>
 
@@ -247,34 +243,49 @@ export default function PhotoBooth() {
             </h1>
           )}
         </div>
-        <canvas ref={canvasRef} className='hidden' />
+        <canvas ref={canvasRef} className='hidden w-full h-auto' />
         <div className='mt-4'>
           {photos.length < 4 ? (
             <div className='flex gap-4 justify-between'>
               <div className='flex gap-4'>
                 <button
                   onClick={takePhoto}
-                  className='px-6 py-4 bg-black flex gap-2 text-white rounded-full cursor-pointer hover:bg-white hover:text-black transition ease-in-out duration-200'
+                  disabled={capturing} // Disable when capturing
+                  className={`px-6 py-4 flex gap-2 rounded-full transition ease-in-out duration-200 ${
+                    capturing
+                      ? 'opacity-75 bg-black cursor-not-allowed' // Disabled styles
+                      : 'bg-black text-white hover:bg-white hover:text-black cursor-pointer' // Active styles
+                  }`}
                 >
                   <Aperture />
                   Take Photo
                 </button>
-                {/* {photos.length < 1 && ( // Keep Auto Capture visible
-                  <button
-                    onClick={autoCapturePhotos}
-                    className='px-6 py-4 bg-black flex gap-2 text-white rounded-full cursor-pointer hover:bg-white hover:text-black transition ease-in-out duration-200'
-                  >
-                    <Repeat />
-                    Auto Capture
-                  </button>
-                )} */}
+
+                <button
+                  onClick={autoCapturePhotos}
+                  disabled={capturing} // Disable when capturing
+                  className={`px-6 py-4 bg-black flex gap-2 text-white rounded-full cursor-pointertransition ease-in-out duration-200 ${
+                    capturing
+                      ? 'opacity-75 bg-black cursor-not-allowed' // Disabled styles
+                      : 'bg-black text-white hover:bg-white hover:text-black cursor-pointer' // Active styles`
+                  }`}
+                >
+                  <Repeat />
+                  Auto Capture
+                </button>
               </div>
-              <button
-                onClick={retakePhoto}
-                className='p-4 bg-black text-white rounded-full cursor-pointer hover:bg-zinc-800 hover:border-zinc-800 transition ease-in-out'
-              >
-                <RotateCcw />
-              </button>
+              {photos.length > 0 && (
+                <motion.button
+                  onClick={retakePhoto}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  className='p-4 bg-black text-white rounded-full cursor-pointer hover:bg-zinc-800 hover:border-zinc-800 transition ease-in-out'
+                >
+                  <RotateCcw />
+                </motion.button>
+              )}
             </div>
           ) : (
             <div className='flex gap-2 justify-between'>
@@ -308,25 +319,20 @@ export default function PhotoBooth() {
                 {Object.keys(filters).map((key) => (
                   <button
                     key={key}
-                    className={`py-2 px-4 border rounded-full cursor-pointer ${
-                      selectedFilter === key
-                        ? 'bg-white text-black'
-                        : 'bg-black text-white'
-                    }`}
+                    disabled={capturing || selectedFilter === key} // Disable when capturing or already selected
+                    className={`py-3 px-4 rounded-full transition 
+    ${
+      selectedFilter === key
+        ? 'opacity-75 bg-black text-white cursor-not-allowed'
+        : 'bg-black text-white hover:bg-white hover:text-black cursor-pointer' // Active styles`
+    }
+    ${capturing ? 'opacity-75 cursor-not-allowed' : ''}`} // Extra disabled styles when capturing
                     onClick={() => setSelectedFilter(key)}
                   >
                     {key.replace(/([A-Z])/g, ' $1')}{' '}
                     {/* Formats 'blackAndWhite' to 'Black And White' */}
                   </button>
                 ))}
-                <button
-                  onClick={() => setIsMirrored(!isMirrored)}
-                  className={`py-2 px-4 border rounded-full cursor-pointer  ${
-                    isMirrored ? 'bg-zinc-850' : 'bg-black'
-                  } text-white `}
-                >
-                  Mirror
-                </button>
               </div>
             </div>
           )}
