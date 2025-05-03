@@ -230,6 +230,7 @@ export default function PhotoBooth() {
               ref={videoRef}
               autoPlay
               playsInline
+              muted
               className={`w-full border border-zinc-800 rounded-lg object-cover h-auto -scale-x-100`}
             />
           </div>
@@ -274,7 +275,7 @@ export default function PhotoBooth() {
                   Auto Capture
                 </button>
               </div>
-              {photos.length > 0 && (
+              {photos.length === 4 && (
                 <motion.button
                   onClick={retakePhoto}
                   initial={{ opacity: 0, scale: 0.8 }}
@@ -339,15 +340,16 @@ export default function PhotoBooth() {
         </div>
       </div>
 
+      {/* Photos Section */}
       <div className='flex flex-col items-center gap-4 min-h-[220px] lg:w-[300px] w-full justify-center'>
         <AnimatePresence mode='popLayout'>
           {photos.length > 0 ? (
             photos.map((photo, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, scale: 0.5 }} // Fade-in & scale up when added
+                initial={{ opacity: 0, scale: 0.5 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.5 }} // Fade-out & scale down when removed
+                exit={{ opacity: 0, scale: 0.5 }}
                 transition={{ duration: 0.2, ease: 'easeOut' }}
               >
                 <img
