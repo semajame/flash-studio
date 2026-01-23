@@ -56,7 +56,7 @@ All image processing is handled on the client side, ensuring fast performance an
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/digital-photobooth.git
+git clone https://github.com/semajame/digital-photobooth.git
 
 # Install dependencies
 npm install
