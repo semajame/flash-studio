@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📸 Digital Photobooth Web Application
 
-## Getting Started
+A frontend-only digital photobooth application that allows users to capture up to four photos using their device camera, automatically arrange them into customizable photostrips, and download the final output directly to their local machine.
 
-First, run the development server:
+---
+
+## 📌 Project Overview
+
+The **Digital Photobooth Web Application** provides a fun and interactive photo-taking experience directly in the browser. Users can take multiple photos in a single session, apply photostrip layouts, and export the final image without requiring any backend services.
+
+All image processing is handled on the client side, ensuring fast performance and complete user privacy.
+
+---
+
+## ✨ Key Features
+
+### User Features
+- **Camera Capture**
+  - Access device camera via the browser
+  - Capture up to **four photos per session**
+  - Live camera preview before each shot
+
+- **Photostrip Generation**
+  - Automatically arranges captured photos into photostrip layouts
+  - Supports multiple layout designs
+  - Real-time preview of the final photostrip
+
+- **Download Functionality**
+  - Export the photostrip as an image file
+  - Download directly to the user’s local machine
+  - No server upload or storage required
+
+- **Privacy-Focused**
+  - No backend or database
+  - Photos never leave the user’s device
+
+---
+
+## ⚙️ Application Behavior
+- All image capture and processing are handled client-side
+- Photos are stored temporarily in browser memory
+- Downloaded images are generated dynamically using canvas-based rendering
+
+---
+
+## 🧱 Tech Stack
+
+- **Framework:** Next.js
+- **Styling:** Tailwind CSS
+- **Language:** TypeScript / JavaScript
+- **Image Processing:** HTML Canvas / Web APIs
+- **Backend:** None (Client-side only)
+
+---
+
+## 🔧 Installation & Setup
 
 ```bash
+# Clone the repository
+git clone https://github.com/your-username/digital-photobooth.git
+
+# Install dependencies
+npm install
+
+# Run the development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
