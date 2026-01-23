@@ -22,7 +22,6 @@ All image processing is handled on the client side, ensuring fast performance an
 
 - **Photostrip Generation**
   - Automatically arranges captured photos into photostrip layouts
-  - Supports multiple layout designs
   - Real-time preview of the final photostrip
 
 - **Download Functionality**
