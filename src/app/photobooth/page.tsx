@@ -1,10 +1,9 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { useRef, useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { filters } from '../utils/filters' // Adjust the path as needed
-
+import * as React from "react";
+import { useRef, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { filters } from "../utils/filters";
 import {
   RotateCcw,
   ArrowRight,
@@ -12,7 +11,10 @@ import {
   Camera,
   Timer,
   Repeat,
-} from 'lucide-react'
+  Images,
+  CheckCircle2,
+  Sparkles,
+} from "lucide-react";
 
 import {
   Select,
@@ -20,359 +22,398 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  SelectGroup,
-} from '@/components/ui/select'
+} from "@/components/ui/select";
 
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function PhotoBooth() {
-  const videoRef = useRef<HTMLVideoElement | null>(null)
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const [photos, setPhotos] = useState<string[]>([])
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [selectedPhotos, setSelectedPhotos] = useState<string[]>([]);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [capturing, setCapturing] = useState(false);
+  const [flash, setFlash] = useState(false); // For "Apple" camera flash effect
+  const [selectedTimer, setSelectedTimer] = useState(3);
+  const [photoLimit, setPhotoLimit] = useState(4);
+  const [selectedFilter, setSelectedFilter] = useState<string>("None");
 
-  const [countdown, setCountdown] = useState<number | null>(null)
-  const [capturing, setCapturing] = useState(false) // Define capturing state
-
-  let [selectedTimer, setSelectedTimer] = useState(3)
-  const autoCaptureActive = useRef(false) // Track if auto capture is active
-
-  const [selectedFilter, setSelectedFilter] = useState<string>('None')
-
-  const router = useRouter()
+  const router = useRouter();
 
   useEffect(() => {
-    startCamera() // Restart the camera when the component mounts
-    localStorage.clear() // Clear stored photos
+    startCamera();
+    localStorage.clear();
+  }, []);
 
-    console.log(localStorage)
-  }, [])
-
-  //^ start camera
   const startCamera = async () => {
     try {
-      // Stop any existing streams
-      if (videoRef.current?.srcObject) {
-        const tracks = (videoRef.current.srcObject as MediaStream).getTracks()
-        tracks.forEach((track) => track.stop())
-      }
-
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true })
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-      }
-    } catch (error) {
-      console.error('Error accessing camera:', error)
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (videoRef.current) videoRef.current.srcObject = stream;
+    } catch (err) {
+      console.error("Camera error:", err);
     }
-  }
+  };
+
+  const triggerFlash = () => {
+    setFlash(true);
+    setTimeout(() => setFlash(false), 150);
+  };
 
   const photo = () => {
-    const canvas = canvasRef.current
-    const video = videoRef.current
-    if (!canvas || !video) return
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    if (!canvas || !video) return;
 
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    triggerFlash();
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-    // Get the correct video width and height
-    const videoWidth = video.videoWidth
-    const videoHeight = video.videoHeight
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.filter = filters[selectedFilter] || "none";
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Set canvas width and height BEFORE applying filters
-    canvas.width = videoWidth
-    canvas.height = videoHeight
+    const newPhoto = canvas.toDataURL("image/png");
+    setPhotos((prev) =>
+      prev.length < photoLimit ? [...prev, newPhoto] : prev,
+    );
+  };
 
-    // Clear previous drawing
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-    // Force Safari to recognize filters
-    ctx.globalCompositeOperation = 'copy'
-
-    // Apply the selected filter BEFORE transformations
-    const filter = filters[selectedFilter] || ''
-    ctx.filter = filter
-
-    // Apply mirroring if enabled
-    ctx.translate(canvas.width, 0)
-    ctx.scale(-1, 1)
-
-    // Draw the video frame onto the canvas
-    ctx.drawImage(video, 0, 0, videoWidth, videoHeight)
-
-    // Reset transformations and filters
-    ctx.setTransform(1, 0, 0, 1, 0, 0)
-    ctx.filter = 'none'
-    ctx.globalCompositeOperation = 'source-over' // Reset operation
-
-    // Convert canvas content to image
-    const newPhoto = canvas.toDataURL('image/png')
-    setPhotos((prevPhotos) =>
-      prevPhotos.length < 4 ? [...prevPhotos, newPhoto] : prevPhotos
-    )
-  }
-
-  //^ TAKE PHOTO
   const takePhoto = () => {
-    if (capturing) return // Prevent multiple captures
-    setCapturing(true) // Disable button while capturing
-
-    setCountdown(selectedTimer)
+    if (capturing) return;
+    setCapturing(true);
+    setCountdown(selectedTimer);
 
     const countdownFn = (count: number) => {
       if (count === 0) {
-        setCountdown(null)
-
+        setCountdown(null);
         setTimeout(() => {
-          photo() // Capture the photo
-          setCapturing(false) // Enable button after capture
-        }, 500)
-
-        return
+          photo();
+          setCapturing(false);
+        }, 300);
+        return;
       }
-
       setTimeout(() => {
-        setCountdown((prev) => (prev ? prev - 1 : null))
-        countdownFn(count - 1) // Continue countdown
-      }, 1000)
-    }
+        setCountdown(count - 1);
+        countdownFn(count - 1);
+      }, 1000);
+    };
+    countdownFn(selectedTimer);
+  };
 
-    countdownFn(selectedTimer)
-  }
-
-  //^ Auto Capture 4 Photos
   const autoCapturePhotos = async () => {
-    autoCaptureActive.current = true
-    if (capturing) return
-    setCapturing(true)
-    localStorage.clear() // ✅ Clear local storage before capturing
-    setPhotos([]) // ✅ Clear previous photos
+    if (capturing) return;
+    setCapturing(true);
+    setPhotos([]);
+    setSelectedPhotos([]);
 
-    for (let count = 0; count < 4; count++) {
-      // Countdown from 3 to 1
+    for (let count = 0; count < photoLimit; count++) {
       for (let i = 3; i > 0; i--) {
-        setCountdown(i)
-        await new Promise((resolve) => setTimeout(resolve, 1000)) // 1 sec delay
+        setCountdown(i);
+        await new Promise((r) => setTimeout(r, 1000));
       }
-
-      setCountdown(null) // Clear countdown before taking the photo
-
-      // Ensure the camera has time to render before capturing
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
-      // ✅ Capture the photo and wait for it to complete
-      photo()
-
-      await new Promise((resolve) => setTimeout(resolve, 500)) // UI update delay
+      setCountdown(null);
+      photo();
+      await new Promise((r) => setTimeout(r, 800));
     }
+    setCapturing(false);
+  };
 
-    setCapturing(false)
-    autoCaptureActive.current = false
-  }
-
-  //^ Retake Photos
-  const retakePhoto = () => {
-    autoCaptureActive.current = false // Stop auto capture
-    setPhotos([]) // Reset photos
-    setCountdown(null) // Reset countdown
-    setCapturing(false)
-    localStorage.clear()
-  }
+  const togglePhotoSelection = (url: string) => {
+    setSelectedPhotos((prev) =>
+      prev.includes(url)
+        ? prev.filter((p) => p !== url)
+        : prev.length < 4
+          ? [...prev, url]
+          : prev,
+    );
+  };
 
   return (
-    <div className='lg:flex lg:gap-10 items-start lg:justify-evenly py-[3rem] px-[1rem] sm:px-[5rem]'>
-      <div>
-        <div className='mb-4 flex justify-between items-center'>
-          <button
-            onClick={startCamera}
-            className='px-6 py-4 bg-black text-white rounded-full cursor-pointer flex gap-2 hover:bg-white hover:text-black  transition ease-in-out duration-200'
+    <div className="min-h-screen bg-neutral-950 text-white selection:bg-white/20 p-6 ">
+      <div className="max-w-7xl mx-auto lg:flex gap-12 items-start justify-center mt-30">
+        {/* LEFT: MAIN VIEWFINDER */}
+        <div className="flex-1 max-w-2xl space-y-8">
+          {/* Header Controls */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-wrap gap-3 items-center justify-between bg-white/5 p-2 rounded-3xl backdrop-blur-xl border border-white/10"
           >
-            <Camera />
-            Start Camera
-          </button>
-          {/* Timer Selection UI */}
-          <Select onValueChange={(value) => setSelectedTimer(Number(value))}>
-            <SelectTrigger className='rounded-full bg-black text-white cursor-pointer border-none'>
-              <Timer />
-              <SelectValue placeholder='Select Timer' />
-            </SelectTrigger>
-            <SelectContent className='bg-black text-white rounded border-none'>
-              <SelectGroup className='text-center'>
-                <SelectItem
-                  value='3'
-                  className='hover:bg-zinc-800 cursor-pointer '
-                >
-                  3s delay
-                </SelectItem>
-                <SelectItem
-                  value='5'
-                  className='hover:bg-zinc-800 cursor-pointer'
-                >
-                  5s delay
-                </SelectItem>
-                <SelectItem
-                  value='10'
-                  className='hover:bg-zinc-800 cursor-pointer'
-                >
-                  10s delay
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className='relative'>
-          <div
-            style={{
-              filter: filters[selectedFilter],
-              WebkitFilter: filters[selectedFilter],
-              willChange: 'filter, transform, opacity',
-            }}
-          >
+            <div className="flex gap-2">
+              <button
+                onClick={startCamera}
+                className="h-10 px-4 bg-white/10 hover:bg-white/20 cursor-pointer rounded-2xl transition flex items-center gap-2 text-sm font-medium"
+              >
+                <Camera size={18} />{" "}
+                <span className="hidden sm:inline">Camera</span>
+              </button>
+
+              <Select onValueChange={(v) => setSelectedTimer(Number(v))}>
+                <SelectTrigger className="h-10 bg-transparent border-none rounded-2xl hover:bg-white/5 transition px-4 cursor-pointer">
+                  <Timer size={18} className="mr-2" />{" "}
+                  <SelectValue placeholder="3s" />
+                </SelectTrigger>
+                <SelectContent className="bg-neutral-900 border-white/10 text-white rounded-2xl">
+                  <SelectItem
+                    value="3"
+                    className="cursor-pointer hover:bg-zinc-800 rounded-full"
+                  >
+                    3s delay
+                  </SelectItem>
+                  <SelectItem
+                    value="5"
+                    className="cursor-pointer hover:bg-zinc-800 rounded-full"
+                  >
+                    5s delay
+                  </SelectItem>
+                  <SelectItem
+                    value="10"
+                    className="cursor-pointer hover:bg-zinc-800 rounded-full "
+                  >
+                    10s delay
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
+                onValueChange={(v) => {
+                  setPhotoLimit(Number(v));
+                  setPhotos([]);
+                  setSelectedPhotos([]);
+                }}
+              >
+                <SelectTrigger className="h-10 bg-transparent border-none rounded-2xl hover:bg-white/5 transition px-4 cursor-pointer">
+                  <Images size={18} className="mr-2" />{" "}
+                  <SelectValue placeholder="Limit" />
+                </SelectTrigger>
+                <SelectContent className="bg-neutral-900 border-white/10 text-white rounded-2xl cursor-pointer">
+                  {[1, 3, 4, 6, 8].map((n) => (
+                    <SelectItem
+                      key={n}
+                      value={String(n)}
+                      className="cursor-pointer hover:bg-zinc-800 rounded-full"
+                    >
+                      {n} Photos
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </motion.div>
+
+          {/* Video Feed */}
+          <div className="relative aspect-video rounded-lg overflow-hidden border border-white/10 bg-black shadow-2xl">
             <video
               ref={videoRef}
               autoPlay
               playsInline
               muted
-              className={`w-full border border-zinc-800 rounded-lg object-cover h-auto -scale-x-100`}
+              style={{ filter: filters[selectedFilter] }}
+              className="w-full h-full object-cover -scale-x-100"
             />
+
+            {/* Flash Overlay */}
+            <AnimatePresence>
+              {flash && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-white z-50"
+                />
+              )}
+            </AnimatePresence>
+
+            {/* Countdown Overlay */}
+            <AnimatePresence>
+              {countdown && (
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 1.5, opacity: 0 }}
+                  className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none"
+                >
+                  <span className="text-9xl font-bold tabular-nums drop-shadow-2xl">
+                    {countdown}
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          {countdown !== null && countdown > 0 && (
-            <h1
-              className='absolute text-7xl text-white font-bold  w-20 h-20 flex items-center justify-center rounded-full animate-ping
-      top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'
-            >
-              {countdown}
-            </h1>
-          )}
-        </div>
-        <canvas ref={canvasRef} className='hidden w-full h-auto' />
-        <div className='mt-4'>
-          {photos.length < 4 ? (
-            <div className='flex gap-4 justify-between'>
-              <div className='flex gap-4'>
+          <canvas ref={canvasRef} className="hidden" />
+
+          {/* Primary Actions */}
+          <div className="flex gap-4 items-center">
+            {photos.length < photoLimit ? (
+              <>
                 <button
                   onClick={takePhoto}
-                  disabled={capturing} // Disable when capturing
-                  className={`px-6 py-4 flex gap-2 rounded-full transition ease-in-out duration-200 ${
-                    capturing
-                      ? 'opacity-75 bg-black cursor-not-allowed' // Disabled styles
-                      : 'bg-black text-white hover:bg-white hover:text-black cursor-pointer' // Active styles
-                  }`}
+                  disabled={capturing}
+                  className="h-16 px-8 bg-white text-black cursor-pointer rounded-[2rem] font-bold flex items-center gap-3 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
                 >
-                  <Aperture />
-                  Take Photo
+                  <Aperture size={24} /> Take Photo
                 </button>
-
                 <button
                   onClick={autoCapturePhotos}
-                  disabled={capturing} // Disable when capturing
-                  className={`px-6 py-4 bg-black flex gap-2 text-white rounded-full cursor-pointertransition ease-in-out duration-200 ${
-                    capturing
-                      ? 'opacity-75 bg-black cursor-not-allowed' // Disabled styles
-                      : 'bg-black text-white hover:bg-white hover:text-black cursor-pointer' // Active styles`
-                  }`}
+                  disabled={capturing}
+                  className="h-16 w-16 bg-white/10 rounded-full cursor-pointer  flex items-center justify-center hover:bg-white/20 transition-all active:scale-90"
                 >
-                  <Repeat />
-                  Auto Capture
+                  <Repeat size={24} />
                 </button>
+              </>
+            ) : (
+              <div className="flex w-full justify-between items-center bg-white/5 p-4 rounded-[2.5rem] border border-white/10">
+                <div className="pl-4">
+                  <p className="text-sm font-medium text-white/50">
+                    Ready to print?
+                  </p>
+                  <p className="text-lg font-bold">
+                    {selectedPhotos.length} of 4 selected
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setPhotos([]);
+                      setSelectedPhotos([]);
+                    }}
+                    className="h-12 w-12 bg-white/10 rounded-full flex items-center justify-center"
+                  >
+                    <RotateCcw size={20} />
+                  </button>
+                  <button
+                    disabled={selectedPhotos.length === 0}
+                    onClick={() => {
+                      localStorage.setItem(
+                        "capturedPhotos",
+                        JSON.stringify(selectedPhotos),
+                      );
+                      router.push("/print");
+                    }}
+                    className="h-12 px-6 bg-green-500 hover:bg-green-400 disabled:bg-neutral-800 disabled:text-neutral-500 rounded-full font-bold flex items-center gap-2 transition-all cursor-pointer "
+                  >
+                    Next <ArrowRight size={20} />
+                  </button>
+                </div>
               </div>
-              {photos.length === 4 && (
-                <motion.button
-                  onClick={retakePhoto}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ duration: 0.3, ease: 'easeInOut' }}
-                  className='p-4 bg-black text-white rounded-full cursor-pointer hover:bg-zinc-800 hover:border-zinc-800 transition ease-in-out'
-                >
-                  <RotateCcw />
-                </motion.button>
+            )}
+          </div>
+
+          {/* Filter Chips */}
+          <div className="flex flex-wrap gap-2 pb-4 no-scrollbar">
+            {Object.keys(filters).map((key) => (
+              <button
+                key={key}
+                onClick={() => setSelectedFilter(key)}
+                className={`px-5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+                  selectedFilter === key
+                    ? "bg-white text-black scale-105"
+                    : "bg-white/5 text-white/60 hover:bg-white/10"
+                }`}
+              >
+                {key}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* RIGHT: PREVIEW DRAWER */}
+        <div className="lg:w-80 w-full mt-12 lg:mt-0">
+          <div className="sticky top-12 space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold flex items-center gap-2">
+                <Sparkles size={20} className="text-yellow-500" /> Preview
+              </h3>
+              {selectedPhotos.length > 0 && (
+                <span className="text-xs bg-white/10 px-3 py-1 rounded-full text-white/70">
+                  {selectedPhotos.length}/4 Limit
+                </span>
               )}
             </div>
-          ) : (
-            <div className='flex gap-2 justify-between'>
-              <motion.button
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.2, ease: 'easeOut' }}
-                whileHover={{ scale: 1.0 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  localStorage.setItem('capturedPhotos', JSON.stringify(photos))
-                  router.push('/print')
-                }}
-                className='px-6 py-4 bg-green-600 hover:bg-green-800 transition ease-in-out text-white rounded-full cursor-pointer flex gap-2'
-              >
-                Next <ArrowRight />
-              </motion.button>
-              <button
-                onClick={retakePhoto}
-                className='p-4 bg-black text-white rounded-full cursor-pointer hover:bg-zinc-800 hover:border-zinc-800 transition ease-in-out'
-              >
-                <RotateCcw />
-              </button>
-            </div>
-          )}
-        </div>
-        <div className='my-6'>
-          {photos.length < 4 && (
-            <div className='my-6'>
-              <div className='grid grid-cols-3 md:grid-cols-5 gap-2 my-2 justify-between flex-wrap'>
-                {Object.keys(filters).map((key) => (
-                  <button
-                    key={key}
-                    disabled={capturing || selectedFilter === key} // Disable when capturing or already selected
-                    className={`py-3 px-4 rounded-full transition 
-    ${
-      selectedFilter === key
-        ? 'opacity-75 bg-black text-white cursor-not-allowed'
-        : 'bg-black text-white hover:bg-white hover:text-black cursor-pointer' // Active styles`
-    }
-    ${capturing ? 'opacity-75 cursor-not-allowed' : ''}`} // Extra disabled styles when capturing
-                    onClick={() => setSelectedFilter(key)}
-                  >
-                    {key.replace(/([A-Z])/g, ' $1')}{' '}
-                    {/* Formats 'blackAndWhite' to 'Black And White' */}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
 
-      {/* Photos Section */}
-      <div className='flex flex-col items-center gap-4 min-h-[220px] lg:w-[300px] w-full justify-center'>
-        <AnimatePresence mode='popLayout'>
-          {photos.length > 0 ? (
-            photos.map((photo, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.5 }}
-                transition={{ duration: 0.2, ease: 'easeOut' }}
-              >
-                <img
-                  src={photo}
-                  alt={`Captured ${index + 1}`}
-                  className='w-full max-w-md border border-zinc-600 rounded h-auto object-contain'
-                />
-              </motion.div>
-            ))
-          ) : (
-            <motion.div
-              key='no-photos'
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className='h-[200px] w-full flex items-center justify-center text-white'
-            >
-              No Photos Yet
-            </motion.div>
-          )}
-        </AnimatePresence>
+            <div className="grid gap-4 max-h-[70vh] overflow-y-auto no-scrollbar pr-2">
+              <AnimatePresence mode="popLayout">
+                {photos.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="aspect-[3/4] rounded-3xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center text-white/20 gap-3"
+                  >
+                    <Images size={48} />
+                    <p className="text-sm">Snap to begin</p>
+                  </motion.div>
+                ) : (
+                  <div
+                    className={`grid gap-4 ${
+                      photos.length >= 4 ? "grid-cols-2" : "grid-cols-1"
+                    }`}
+                  >
+                    {photos.map((photo, i) => {
+                      const isSelected = selectedPhotos.includes(photo);
+                      const isLimitReached = selectedPhotos.length >= 4;
+
+                      return (
+                        <motion.div
+                          key={photo}
+                          layout
+                          initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          whileHover={{
+                            scale: !isSelected && isLimitReached ? 1 : 1.02,
+                          }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => togglePhotoSelection(photo)}
+                          className={`relative cursor-pointer rounded-2xl overflow-hidden shadow-2xl transition-all ${
+                            !isSelected && isLimitReached
+                              ? "opacity-40 grayscale"
+                              : "opacity-100"
+                          }`}
+                        >
+                          <img
+                            src={photo}
+                            className={`w-full h-full object-cover border-4 transition-colors ${
+                              isSelected
+                                ? "border-green-500"
+                                : "border-transparent"
+                            }`}
+                          />
+
+                          <div
+                            className={`absolute inset-0 bg-black/20 transition-opacity ${
+                              isSelected
+                                ? "opacity-100"
+                                : "opacity-0 hover:opacity-100"
+                            }`}
+                          />
+
+                          {isSelected && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="absolute top-3 right-3 bg-green-500 p-1 rounded-full shadow-lg"
+                            >
+                              <CheckCircle2 size={20} />
+                            </motion.div>
+                          )}
+
+                          <span className="absolute bottom-3 left-3 bg-black/50 backdrop-blur-md px-2 py-1 rounded-md text-[10px] font-mono">
+                            IMG_00{i + 1}
+                          </span>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  )
+  );
 }
