@@ -349,7 +349,7 @@ export default function PhotoBooth() {
                 ) : (
                   <div
                     className={`grid gap-4 ${
-                      photos.length >= 4 ? "grid-cols-2" : "grid-cols-1"
+                      photos.length > 4 ? "grid-cols-2" : "grid-cols-1"
                     }`}
                   >
                     {photos.map((photo, i) => {
