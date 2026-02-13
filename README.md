@@ -1,4 +1,4 @@
-# 📸 Digital Photobooth
+# 📸 Flash Studio
 
 A frontend-only digital photobooth application that allows users to capture up to four photos using their device camera, automatically arrange them into customizable photostrips, and download the final output directly to their local machine.
 
