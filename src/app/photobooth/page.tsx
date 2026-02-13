@@ -190,7 +190,7 @@ export default function PhotoBooth() {
                   <SelectValue placeholder="Limit" />
                 </SelectTrigger>
                 <SelectContent className="bg-neutral-900 border-white/10 text-white rounded-2xl cursor-pointer">
-                  {[1, 3, 4, 6, 8].map((n) => (
+                  {[4, 6, 8].map((n) => (
                     <SelectItem
                       key={n}
                       value={String(n)}
@@ -309,7 +309,7 @@ export default function PhotoBooth() {
               <button
                 key={key}
                 onClick={() => setSelectedFilter(key)}
-                className={`px-5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+                className={`px-5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                   selectedFilter === key
                     ? "bg-white text-black scale-105"
                     : "bg-white/5 text-white/60 hover:bg-white/10"
@@ -322,7 +322,7 @@ export default function PhotoBooth() {
         </div>
 
         {/* RIGHT: PREVIEW DRAWER */}
-        <div className="lg:w-80 w-full mt-12 lg:mt-0">
+        <div className="lg:w-80 w-full mt-12 lg:mt-0 h-full  bg-white/5 rounded-3xl p-6 backdrop-blur-xl border border-white/10">
           <div className="sticky top-12 space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold flex items-center gap-2">

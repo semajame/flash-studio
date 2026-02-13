@@ -89,7 +89,7 @@ export default function PrintPage() {
   };
 
   return (
-    <div className="flex flex-col sm:gap-5 sm:flex sm:flex-row sm:justify-evenly py-10 px-5 pt-35">
+    <div className="grid sm:grid-cols-2 pt-45 max-w-5xl mx-auto justify-center items-start px-4 pb-10">
       <div className="sm:max-w-[500px] flex-1 justify-center">
         <h1 className="text-4xl font-bold mb-5 text-white">
           Photo Strip Editor
@@ -304,7 +304,7 @@ export default function PrintPage() {
       </div>
 
       {/* Photo Display with Dynamic Background */}
-      <div className="flex justify-center lg:max-w-2xl mt-10">
+      <div className="mt-10 flex justify-end">
         <div
           className="flex flex-col gap-4 p-7  w-[350px] h-auto"
           id="photoStrip"
